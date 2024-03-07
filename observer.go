@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/google/uuid"
+)
 
 type PaymentObserver interface {
 	Update(string, bool, string)
@@ -37,14 +41,20 @@ func (p *PaymentProcessor) Attach(observer PaymentObserver) {
 	p.observers = append(p.observers, observer)
 }
 
-func (p *PaymentProcessor) Pay(params map[string]interface{}) bool {
-	payment, ok := p.paymentStrategies[params["name"].(string)]
-	if !ok {
-		panic("Payment method not found")
+func (p *PaymentProcessor) GetPaymentMethod(method string) (Payment, bool) {
+	paymentCommand, ok := p.paymentStrategies[method]
+	return paymentCommand, ok
+}
+
+func savePayment(success bool, method string, amount float32) string {
+	id := uuid.New()
+	data := map[string]interface{}{
+		"uuid":    id.String(),
+		"amount":  amount,
+		"method":  method,
+		"success": success,
 	}
-	message, success := payment.Pay(params)
-	for _, observer := range p.observers {
-		observer.Update(params["name"].(string), success, message)
-	}
-	return success
+
+	saveReg(id.String(), fmt.Sprint(data))
+	return id.String()
 }

@@ -7,6 +7,7 @@ import (
 
 type Payment interface {
 	Pay(params map[string]interface{}) (string, bool)
+	Undo(params map[string]interface{}) (string, bool)
 }
 
 type CashPayment struct{}
@@ -31,6 +32,10 @@ func (c *CashPayment) Pay(params map[string]interface{}) (string, bool) {
 	return "Payment with cash failed", false
 }
 
+func (c *CashPayment) Undo(params map[string]interface{}) (string, bool) {
+	return "Payment undo", true
+}
+
 type CardPayment struct{}
 
 func (c *CardPayment) Pay(params map[string]interface{}) (string, bool) {
@@ -50,6 +55,10 @@ func (c *CardPayment) Pay(params map[string]interface{}) (string, bool) {
 	}
 
 	return "Payment with Card failed", false
+}
+
+func (c *CardPayment) Undo(params map[string]interface{}) (string, bool) {
+	return "Payment undo", true
 }
 
 type PSEPayment struct{}
@@ -73,18 +82,13 @@ func (c *PSEPayment) Pay(params map[string]interface{}) (string, bool) {
 	return "Payment with PSE failed", false
 }
 
+func (c *PSEPayment) Undo(params map[string]interface{}) (string, bool) {
+	return "Payment undo", true
+}
+
 type PaymentDecorator struct {
 	Payment
 	discount float32
-}
-
-func NewPaymentDecorator(p Payment, discount float32) *PaymentDecorator {
-	return &PaymentDecorator{Payment: p, discount: discount}
-}
-
-func (d *PaymentDecorator) Pay(params map[string]interface{}) (string, bool) {
-	params["discount"] = d.discount
-	return d.Payment.Pay(params)
 }
 
 func randomNum() bool {
